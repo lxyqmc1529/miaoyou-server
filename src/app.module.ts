@@ -4,6 +4,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { JwtModule } from '@nestjs/jwt';
 import { PassportModule } from '@nestjs/passport';
 import { LoggerMiddleware } from './middleware/logger.middleware';
+import { LoggerTestController } from './controllers/logger-test.controller';
 
 // Entities
 import { User } from './entities/User';
@@ -65,6 +66,7 @@ import { WorksModule } from './modules/works/works.module';
     MomentsModule,
     WorksModule,
   ],
+  controllers: [LoggerTestController],
 })
 export class AppModule implements NestModule {
   configure(consumer: MiddlewareConsumer) {

@@ -1,0 +1,523 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>日志系统监控面板</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .dashboard {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        .header p {
+            font-size: 1.2em;
+            opacity: 0.9;
+        }
+
+        .controls {
+            padding: 20px 30px;
+            background: #f8f9fa;
+            border-bottom: 1px solid #e9ecef;
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        .control-group {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .control-group label {
+            font-weight: 600;
+            color: #495057;
+        }
+
+        select, button {
+            padding: 8px 16px;
+            border: 2px solid #dee2e6;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: all 0.3s ease;
+        }
+
+        select:focus, button:focus {
+            outline: none;
+            border-color: #4facfe;
+            box-shadow: 0 0 0 3px rgba(79, 172, 254, 0.1);
+        }
+
+        button {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            color: white;
+            border: none;
+            cursor: pointer;
+            font-weight: 600;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(79, 172, 254, 0.3);
+        }
+
+        .main-content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            padding: 30px;
+        }
+
+        .panel {
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+
+        .panel-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            font-size: 1.3em;
+            font-weight: 600;
+        }
+
+        .panel-content {
+            padding: 20px;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .log-entry {
+            padding: 12px;
+            margin-bottom: 8px;
+            border-radius: 8px;
+            border-left: 4px solid;
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+            line-height: 1.4;
+            transition: all 0.3s ease;
+        }
+
+        .log-entry:hover {
+            transform: translateX(5px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        .log-error {
+            background: #fff5f5;
+            border-left-color: #e53e3e;
+            color: #c53030;
+        }
+
+        .log-warn {
+            background: #fffbeb;
+            border-left-color: #dd6b20;
+            color: #c05621;
+        }
+
+        .log-info {
+            background: #ebf8ff;
+            border-left-color: #3182ce;
+            color: #2c5282;
+        }
+
+        .log-debug {
+            background: #f0fff4;
+            border-left-color: #38a169;
+            color: #2f855a;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 12px;
+            text-align: center;
+            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.3);
+        }
+
+        .stat-number {
+            font-size: 2.5em;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .stat-label {
+            font-size: 0.9em;
+            opacity: 0.9;
+        }
+
+        .chart-container {
+            height: 300px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #6c757d;
+            font-size: 1.1em;
+        }
+
+        .test-buttons {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .test-btn {
+            padding: 12px;
+            border: none;
+            border-radius: 8px;
+            color: white;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .test-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+        }
+
+        .btn-error { background: linear-gradient(135deg, #e53e3e 0%, #c53030 100%); }
+        .btn-warn { background: linear-gradient(135deg, #dd6b20 0%, #c05621 100%); }
+        .btn-info { background: linear-gradient(135deg, #3182ce 0%, #2c5282 100%); }
+        .btn-debug { background: linear-gradient(135deg, #38a169 0%, #2f855a 100%); }
+
+        @media (max-width: 768px) {
+            .main-content {
+                grid-template-columns: 1fr;
+            }
+            
+            .controls {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            
+            .control-group {
+                justify-content: space-between;
+            }
+        }
+
+        .fade-in {
+            animation: fadeIn 0.5s ease-in;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body>
+    <div class="dashboard">
+        <div class="header">
+            <h1>🚀 日志系统监控面板</h1>
+            <p>实时监控应用日志状态和性能指标</p>
+        </div>
+
+        <div class="controls">
+            <div class="control-group">
+                <label for="logLevel">日志级别:</label>
+                <select id="logLevel">
+                    <option value="all">全部</option>
+                    <option value="error">错误</option>
+                    <option value="warn">警告</option>
+                    <option value="info">信息</option>
+                    <option value="debug">调试</option>
+                </select>
+            </div>
+            
+            <div class="control-group">
+                <label for="autoRefresh">自动刷新:</label>
+                <select id="autoRefresh">
+                    <option value="0">关闭</option>
+                    <option value="1000">1秒</option>
+                    <option value="5000" selected>5秒</option>
+                    <option value="10000">10秒</option>
+                </select>
+            </div>
+            
+            <button onclick="clearLogs()">清空日志</button>
+            <button onclick="exportLogs()">导出日志</button>
+        </div>
+
+        <div class="main-content">
+            <div class="panel">
+                <div class="panel-header">
+                    📊 实时统计
+                </div>
+                <div class="panel-content">
+                    <div class="stats-grid">
+                        <div class="stat-card">
+                            <div class="stat-number" id="errorCount">0</div>
+                            <div class="stat-label">错误</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-number" id="warnCount">0</div>
+                            <div class="stat-label">警告</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-number" id="infoCount">0</div>
+                            <div class="stat-label">信息</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-number" id="debugCount">0</div>
+                            <div class="stat-label">调试</div>
+                        </div>
+                    </div>
+                    
+                    <div class="test-buttons">
+                        <button class="test-btn btn-error" onclick="testLog('error')">测试错误日志</button>
+                        <button class="test-btn btn-warn" onclick="testLog('warn')">测试警告日志</button>
+                        <button class="test-btn btn-info" onclick="testLog('info')">测试信息日志</button>
+                        <button class="test-btn btn-debug" onclick="testLog('debug')">测试调试日志</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="panel">
+                <div class="panel-header">
+                    📈 性能监控
+                </div>
+                <div class="panel-content">
+                    <div class="chart-container">
+                        📊 性能图表区域<br>
+                        <small>可集成 Chart.js 或其他图表库</small>
+                    </div>
+                </div>
+            </div>
+
+            <div class="panel" style="grid-column: 1 / -1;">
+                <div class="panel-header">
+                    📝 实时日志流
+                </div>
+                <div class="panel-content" id="logContainer">
+                    <div class="log-entry log-info fade-in">
+                        <strong>[INFO]</strong> 2024-01-20 10:30:15 - 日志系统初始化完成
+                    </div>
+                    <div class="log-entry log-info fade-in">
+                        <strong>[INFO]</strong> 2024-01-20 10:30:16 - 监控面板已启动
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 日志统计
+        let logStats = {
+            error: 0,
+            warn: 0,
+            info: 2, // 初始化日志
+            debug: 0
+        };
+
+        // 自动刷新定时器
+        let refreshTimer = null;
+
+        // 初始化
+        document.addEventListener('DOMContentLoaded', function() {
+            updateStats();
+            setupAutoRefresh();
+        });
+
+        // 更新统计数据
+        function updateStats() {
+            document.getElementById('errorCount').textContent = logStats.error;
+            document.getElementById('warnCount').textContent = logStats.warn;
+            document.getElementById('infoCount').textContent = logStats.info;
+            document.getElementById('debugCount').textContent = logStats.debug;
+        }
+
+        // 设置自动刷新
+        function setupAutoRefresh() {
+            const select = document.getElementById('autoRefresh');
+            select.addEventListener('change', function() {
+                if (refreshTimer) {
+                    clearInterval(refreshTimer);
+                }
+                
+                const interval = parseInt(this.value);
+                if (interval > 0) {
+                    refreshTimer = setInterval(fetchLogs, interval);
+                }
+            });
+            
+            // 启动默认刷新
+            const defaultInterval = parseInt(select.value);
+            if (defaultInterval > 0) {
+                refreshTimer = setInterval(fetchLogs, defaultInterval);
+            }
+        }
+
+        // 测试日志
+        function testLog(level) {
+            const messages = {
+                error: '这是一个测试错误日志 - 模拟系统异常',
+                warn: '这是一个测试警告日志 - 模拟性能警告',
+                info: '这是一个测试信息日志 - 模拟用户操作',
+                debug: '这是一个测试调试日志 - 模拟调试信息'
+            };
+
+            const timestamp = new Date().toLocaleString('zh-CN');
+            const message = messages[level];
+            
+            addLogEntry(level, timestamp, message);
+            logStats[level]++;
+            updateStats();
+            
+            // 发送到后端（如果需要）
+            sendLogToBackend(level, message);
+        }
+
+        // 添加日志条目
+        function addLogEntry(level, timestamp, message) {
+            const container = document.getElementById('logContainer');
+            const entry = document.createElement('div');
+            entry.className = `log-entry log-${level} fade-in`;
+            entry.innerHTML = `<strong>[${level.toUpperCase()}]</strong> ${timestamp} - ${message}`;
+            
+            container.insertBefore(entry, container.firstChild);
+            
+            // 限制日志条目数量
+            const entries = container.children;
+            if (entries.length > 100) {
+                container.removeChild(entries[entries.length - 1]);
+            }
+            
+            // 应用过滤器
+            applyLogFilter();
+        }
+
+        // 应用日志过滤器
+        function applyLogFilter() {
+            const selectedLevel = document.getElementById('logLevel').value;
+            const entries = document.querySelectorAll('.log-entry');
+            
+            entries.forEach(entry => {
+                if (selectedLevel === 'all') {
+                    entry.style.display = 'block';
+                } else {
+                    const hasLevel = entry.classList.contains(`log-${selectedLevel}`);
+                    entry.style.display = hasLevel ? 'block' : 'none';
+                }
+            });
+        }
+
+        // 日志级别过滤器事件
+        document.getElementById('logLevel').addEventListener('change', applyLogFilter);
+
+        // 清空日志
+        function clearLogs() {
+            document.getElementById('logContainer').innerHTML = '';
+            logStats = { error: 0, warn: 0, info: 0, debug: 0 };
+            updateStats();
+        }
+
+        // 导出日志
+        function exportLogs() {
+            const entries = document.querySelectorAll('.log-entry');
+            let logText = '日志导出 - ' + new Date().toLocaleString('zh-CN') + '\n\n';
+            
+            entries.forEach(entry => {
+                logText += entry.textContent + '\n';
+            });
+            
+            const blob = new Blob([logText], { type: 'text/plain' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `logs_${new Date().toISOString().slice(0, 10)}.txt`;
+            a.click();
+            URL.revokeObjectURL(url);
+        }
+
+        // 从后端获取日志
+        async function fetchLogs() {
+            try {
+                // 这里可以调用实际的API
+                // const response = await fetch('/api/logs');
+                // const logs = await response.json();
+                
+                // 模拟随机日志
+                if (Math.random() < 0.3) {
+                    const levels = ['info', 'warn', 'error', 'debug'];
+                    const level = levels[Math.floor(Math.random() * levels.length)];
+                    const messages = {
+                        info: '用户访问了页面',
+                        warn: '响应时间较慢',
+                        error: '数据库连接失败',
+                        debug: '缓存命中率: 85%'
+                    };
+                    
+                    const timestamp = new Date().toLocaleString('zh-CN');
+                    addLogEntry(level, timestamp, messages[level]);
+                    logStats[level]++;
+                    updateStats();
+                }
+            } catch (error) {
+                console.error('获取日志失败:', error);
+            }
+        }
+
+        // 发送日志到后端
+        async function sendLogToBackend(level, message) {
+            try {
+                // 这里可以调用实际的API来触发后端日志
+                // await fetch('/api/test-log', {
+                //     method: 'POST',
+                //     headers: { 'Content-Type': 'application/json' },
+                //     body: JSON.stringify({ level, message })
+                // });
+                
+                console.log(`发送${level}级别日志:`, message);
+            } catch (error) {
+                console.error('发送日志失败:', error);
+            }
+        }
+    </script>
+</body>
+</html>
