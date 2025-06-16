@@ -1,8 +1,9 @@
-import { Module } from '@nestjs/common';
+import { Module, MiddlewareConsumer, NestModule } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { JwtModule } from '@nestjs/jwt';
 import { PassportModule } from '@nestjs/passport';
+import { LoggerMiddleware } from './middleware/logger.middleware';
 
 // Entities
 import { User } from './entities/User';
@@ -48,7 +49,7 @@ import { WorksModule } from './modules/works/works.module';
     // JWT配置
     JwtModule.register({
       global: true,
-      secret: process.env.JWT_SECRET || 'your-secret-key',
+      secret: process.env.JWT_SECRET || 'miaoyou-secret-key',
       signOptions: { expiresIn: process.env.JWT_EXPIRES_IN || '7d' },
     }),
 
@@ -65,4 +66,10 @@ import { WorksModule } from './modules/works/works.module';
     WorksModule,
   ],
 })
-export class AppModule {}
+export class AppModule implements NestModule {
+  configure(consumer: MiddlewareConsumer) {
+    consumer
+      .apply(LoggerMiddleware)
+      .forRoutes('*'); // 对所有路由应用日志中间件
+  }
+}

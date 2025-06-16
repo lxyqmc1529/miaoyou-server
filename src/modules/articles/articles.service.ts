@@ -7,9 +7,12 @@ import { Category } from '../../entities/Category';
 import { User } from '../../entities/User';
 import { Analytics } from '../../entities/Analytics';
 import { CreateArticleDto, UpdateArticleDto, ArticlePaginationDto } from './dto/articles.dto';
+import { createModuleLogger } from '../../utils/winston-logger';
 
 @Injectable()
 export class ArticlesService {
+  private readonly logger = createModuleLogger('ArticlesService');
+
   constructor(
     @InjectRepository(Article)
     private articleRepository: Repository<Article>,
@@ -293,8 +296,8 @@ export class ArticlesService {
 
       await this.analyticsRepository.save(analytics);
     } catch (error) {
-      console.error('记录分析数据失败:', error);
-    }
+        this.logger.error('记录分析数据失败', error instanceof Error ? error.stack : String(error));
+      }
   }
 
   private getClientIp(request: any): string {

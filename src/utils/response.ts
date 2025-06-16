@@ -1,4 +1,5 @@
 import { Response } from 'express';
+import { appLogger } from './winston-logger';
 
 export interface ApiResponse<T = unknown> {
   success: boolean;
@@ -78,7 +79,7 @@ export class ResponseUtils {
 }
 
 export const handleApiError = (res: Response, error: Error | unknown): Response => {
-  console.error('API Error:', error);
+  appLogger.error('API Error', error instanceof Error ? error.stack : String(error), 'ResponseHandler');
   
   const errorMessage = error instanceof Error ? error.message : 'An unexpected error occurred';
   
