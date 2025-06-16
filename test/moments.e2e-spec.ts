@@ -13,7 +13,7 @@ describe('Moments (e2e)', () => {
     username: 'momentuser' + Date.now(),
     email: 'momentuser' + Date.now() + '@example.com',
     password: 'password123',
-    displayName: 'Moment Test User'
+    nickname: 'Moment Test User'
   };
   let testMoment = {
     content: 'This is a test moment',

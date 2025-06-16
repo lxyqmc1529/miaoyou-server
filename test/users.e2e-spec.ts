@@ -13,13 +13,13 @@ describe('Users (e2e)', () => {
     username: 'testuser' + Date.now(),
     email: 'testuser' + Date.now() + '@example.com',
     password: 'password123',
-    displayName: 'Test User'
+    nickname: 'Test User'
   };
   let anotherUser = {
     username: 'anotheruser' + Date.now(),
     email: 'anotheruser' + Date.now() + '@example.com',
     password: 'password123',
-    displayName: 'Another User'
+    nickname: 'Another User'
   };
 
   beforeAll(async () => {
@@ -149,7 +149,7 @@ describe('Users (e2e)', () => {
     describe('/api/admin/users/:id (PATCH)', () => {
       it('should update user', () => {
         const updateData = {
-          displayName: 'Updated Display Name',
+          nickname: 'Updated Display Name',
           bio: 'Updated bio',
           status: 'active'
         };
@@ -160,14 +160,14 @@ describe('Users (e2e)', () => {
           .expect(200)
           .expect((res) => {
             expect(res.body.success).toBe(true);
-            expect(res.body.data.displayName).toBe(updateData.displayName);
+            expect(res.body.data.nickname).toBe(updateData.nickname);
           });
       });
 
       it('should fail without token', () => {
         return request(app.getHttpServer())
           .patch(`/api/admin/users/${userId}`)
-          .send({ displayName: 'New Name' })
+          .send({ nickname: 'New Name' })
           .expect(401);
       });
 
@@ -175,7 +175,7 @@ describe('Users (e2e)', () => {
         return request(app.getHttpServer())
           .patch('/api/admin/users/invalid-id')
           .set('Authorization', `Bearer ${adminToken}`)
-          .send({ displayName: 'New Name' })
+          .send({ nickname: 'New Name' })
           .expect(404);
       });
 
@@ -243,7 +243,7 @@ describe('Users (e2e)', () => {
           username: 'deleteuser' + Date.now(),
           email: 'deleteuser' + Date.now() + '@example.com',
           password: 'password123',
-          displayName: 'Delete User'
+          nickname: 'Delete User'
         };
         const response = await request(app.getHttpServer())
           .post('/api/auth/register')
@@ -319,7 +319,7 @@ describe('Users (e2e)', () => {
     describe('/api/users/profile (PATCH)', () => {
       it('should update user profile', () => {
         const updateData = {
-          displayName: 'Updated Profile Name',
+          nickname: 'Updated Profile Name',
           bio: 'Updated profile bio',
           website: 'https://example.com',
           location: 'Test City'
@@ -331,14 +331,14 @@ describe('Users (e2e)', () => {
           .expect(200)
           .expect((res) => {
             expect(res.body.success).toBe(true);
-            expect(res.body.data.displayName).toBe(updateData.displayName);
+            expect(res.body.data.nickname).toBe(updateData.nickname);
           });
       });
 
       it('should fail without token', () => {
         return request(app.getHttpServer())
           .patch('/api/users/profile')
-          .send({ displayName: 'New Name' })
+          .send({ nickname: 'New Name' })
           .expect(401);
       });
 

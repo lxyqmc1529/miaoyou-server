@@ -14,7 +14,7 @@ describe('Comments (e2e)', () => {
     username: 'commentuser' + Date.now(),
     email: 'commentuser' + Date.now() + '@example.com',
     password: 'password123',
-    displayName: 'Comment Test User'
+    nickname: 'Comment Test User'
   };
   let testComment = {
     content: 'This is a test comment',

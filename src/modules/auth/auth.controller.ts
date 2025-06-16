@@ -1,4 +1,4 @@
-import { Controller, Post, Body, UseGuards, Request, Get } from '@nestjs/common';
+import { Controller, Post, Body, Get, UseGuards, Request, HttpCode } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth } from '@nestjs/swagger';
 
 import { AuthService } from './auth.service';
@@ -11,11 +11,20 @@ export class AuthController {
   constructor(private authService: AuthService) {}
 
   @Post('login')
+  @HttpCode(200)
   @ApiOperation({ summary: '用户登录' })
   @ApiResponse({ status: 200, description: '登录成功' })
   @ApiResponse({ status: 401, description: '用户名或密码错误' })
   async login(@Body() loginDto: LoginDto) {
-    return this.authService.login(loginDto);
+    const result = await this.authService.login(loginDto);
+    return {
+      success: true,
+      data: {
+        token: result.access_token,
+        user: result.user
+      },
+      message: '登录成功'
+    };
   }
 
   @Post('register')
@@ -23,7 +32,16 @@ export class AuthController {
   @ApiResponse({ status: 201, description: '注册成功' })
   @ApiResponse({ status: 409, description: '用户名或邮箱已存在' })
   async register(@Body() registerDto: RegisterDto) {
-    return this.authService.register(registerDto);
+    const result = await this.authService.register(registerDto);
+    return {
+      success: true,
+      data: {
+        id: result.user.id,
+        token: result.access_token,
+        user: result.user
+      },
+      message: '注册成功'
+    };
   }
 
   @Get('profile')
@@ -39,10 +57,12 @@ export class AuthController {
   }
 
   @Post('refresh')
+  @HttpCode(200)
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
   @ApiOperation({ summary: '刷新令牌' })
   @ApiResponse({ status: 200, description: '刷新成功' })
+  @ApiResponse({ status: 401, description: '未授权' })
   async refresh(@Request() req: Express.Request & { user: { userId: string; username: string; role: string } }) {
     // 更新最后登录时间
     await this.authService.updateLastLogin(req.user.userId);
@@ -55,7 +75,11 @@ export class AuthController {
     };
     
     return {
-      access_token: this.authService['jwtService'].sign(payload),
+      success: true,
+      data: {
+        token: this.authService['jwtService'].sign(payload),
+      },
+      message: '令牌刷新成功'
     };
   }
 }

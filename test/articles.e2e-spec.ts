@@ -13,7 +13,7 @@ describe('Articles (e2e)', () => {
     username: 'articleuser' + Date.now(),
     email: 'articleuser' + Date.now() + '@example.com',
     password: 'password123',
-    displayName: 'Article Test User'
+    nickname: 'Article Test User'
   };
   let testArticle = {
     title: 'Test Article',

@@ -11,7 +11,7 @@ describe('Auth (e2e)', () => {
     username: 'testuser' + Date.now(),
     email: 'test' + Date.now() + '@example.com',
     password: 'password123',
-    displayName: 'Test User'
+    nickname: 'Test User'
   };
 
   beforeAll(async () => {
@@ -61,7 +61,7 @@ describe('Auth (e2e)', () => {
           username: 'newuser',
           email: 'invalid-email',
           password: 'password123',
-          displayName: 'New User'
+          nickname: 'New User'
         })
         .expect(400);
     });
@@ -73,7 +73,7 @@ describe('Auth (e2e)', () => {
           username: 'newuser2',
           email: 'newuser2@example.com',
           password: '123',
-          displayName: 'New User 2'
+          nickname: 'New User 2'
         })
         .expect(400);
     });
@@ -119,10 +119,21 @@ describe('Auth (e2e)', () => {
   });
 
   describe('/api/auth/profile (GET)', () => {
-    it('should get user profile with valid token', () => {
+    it('should get user profile with valid token', async () => {
+      // First login to get token
+      const loginResponse = await request(app.getHttpServer())
+        .post('/api/auth/login')
+        .send({
+          username: testUser.username,
+          password: testUser.password
+        })
+        .expect(200);
+      
+      const token = loginResponse.body.data.token;
+      
       return request(app.getHttpServer())
         .get('/api/auth/profile')
-        .set('Authorization', `Bearer ${authToken}`)
+        .set('Authorization', `Bearer ${token}`)
         .expect(200)
         .expect((res) => {
           expect(res.body.username).toBe(testUser.username);
@@ -146,10 +157,21 @@ describe('Auth (e2e)', () => {
   });
 
   describe('/api/auth/refresh (POST)', () => {
-    it('should refresh token successfully', () => {
+    it('should refresh token successfully', async () => {
+      // First login to get token
+      const loginResponse = await request(app.getHttpServer())
+        .post('/api/auth/login')
+        .send({
+          username: testUser.username,
+          password: testUser.password
+        })
+        .expect(200);
+      
+      const token = loginResponse.body.data.token;
+      
       return request(app.getHttpServer())
         .post('/api/auth/refresh')
-        .set('Authorization', `Bearer ${authToken}`)
+        .set('Authorization', `Bearer ${token}`)
         .expect(200)
         .expect((res) => {
           expect(res.body.success).toBe(true);

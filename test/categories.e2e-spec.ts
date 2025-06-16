@@ -13,7 +13,7 @@ describe('Categories (e2e)', () => {
     username: 'categoryuser' + Date.now(),
     email: 'categoryuser' + Date.now() + '@example.com',
     password: 'password123',
-    displayName: 'Category Test User'
+    nickname: 'Category Test User'
   };
   let testCategory = {
     name: 'Test Category',
