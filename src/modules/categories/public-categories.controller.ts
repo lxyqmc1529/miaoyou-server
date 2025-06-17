@@ -19,22 +19,37 @@ export class PublicCategoriesController {
   @Get()
   @ApiOperation({ summary: '获取公开分类列表' })
   @ApiResponse({ status: 200, description: '获取成功' })
-  findAll(@Query() paginationDto?: PaginationDto) {
-    return this.categoriesService.findAll(paginationDto, true);
+  async findAll(@Query() paginationDto?: PaginationDto) {
+    const result = await this.categoriesService.findAll(paginationDto, true);
+    return {
+      success: true,
+      data: result,
+      message: '获取成功'
+    };
   }
 
   @Get('with-count')
   @ApiOperation({ summary: '获取分类及文章数量' })
   @ApiResponse({ status: 200, description: '获取成功' })
-  getWithArticleCount() {
-    return this.categoriesService.getWithArticleCount();
+  async getWithArticleCount() {
+    const result = await this.categoriesService.getWithArticleCount();
+    return {
+      success: true,
+      data: result,
+      message: '获取成功'
+    };
   }
 
   @Get(':id')
   @ApiOperation({ summary: '获取分类详情' })
   @ApiResponse({ status: 200, description: '获取成功' })
   @ApiResponse({ status: 404, description: '分类不存在' })
-  findOne(@Param('id') id: string) {
-    return this.categoriesService.findOne(id, true);
+  async findOne(@Param('id') id: string) {
+    const result = await this.categoriesService.findOne(id, true);
+    return {
+      success: true,
+      data: result,
+      message: '获取成功'
+    };
   }
 }

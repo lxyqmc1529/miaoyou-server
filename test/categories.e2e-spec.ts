@@ -17,8 +17,7 @@ describe('Categories (e2e)', () => {
   };
   let testCategory = {
     name: 'Test Category',
-    description: 'This is a test category',
-    color: '#FF5733'
+    description: 'This is a test category'
   };
 
   beforeAll(async () => {
@@ -51,18 +50,15 @@ describe('Categories (e2e)', () => {
       });
     authToken = loginResponse.body.data.token;
 
-    // 尝试获取管理员token
-    try {
-      const adminLoginResponse = await request(app.getHttpServer())
-        .post('/api/auth/login')
-        .send({
-          username: 'admin',
-          password: 'admin123'
-        });
-      adminToken = adminLoginResponse.body.data.token;
-    } catch (error) {
-      adminToken = authToken;
-    }
+    // 获取管理员token
+    const adminLoginResponse = await request(app.getHttpServer())
+      .post('/api/auth/login')
+      .send({
+        username: 'admin',
+        password: 'admin123456'
+      })
+      .expect(200);
+    adminToken = adminLoginResponse.body.data.token;
   });
 
   afterAll(async () => {
@@ -71,14 +67,15 @@ describe('Categories (e2e)', () => {
 
   describe('Public Categories API', () => {
     describe('/api/public/categories (GET)', () => {
-      it('should get public categories list', () => {
-        return request(app.getHttpServer())
-          .get('/api/public/categories')
-          .expect(200)
-          .expect((res) => {
-            expect(res.body.success).toBe(true);
-            expect(Array.isArray(res.body.data)).toBe(true);
-          });
+      it('should get public categories list', async () => {
+        const response = await request(app.getHttpServer())
+          .get('/api/public/categories?page=1&limit=10')
+          .expect(200);
+        
+        expect(response.body.success).toBe(true);
+        expect(response.body.data).toBeDefined();
+        expect(Array.isArray(response.body.data.data)).toBe(true);
+        expect(typeof response.body.data.total).toBe('number');
       });
     });
 
@@ -93,18 +90,17 @@ describe('Categories (e2e)', () => {
 
   describe('Admin Categories API', () => {
     describe('/api/admin/categories (POST)', () => {
-      it('should create category with valid token', () => {
-        return request(app.getHttpServer())
+      it('should create category with valid token', async () => {
+        const response = await request(app.getHttpServer())
           .post('/api/admin/categories')
           .set('Authorization', `Bearer ${adminToken}`)
           .send(testCategory)
-          .expect(201)
-          .expect((res) => {
-            expect(res.body.success).toBe(true);
-            expect(res.body.data.id).toBeDefined();
-            expect(res.body.data.name).toBe(testCategory.name);
-            categoryId = res.body.data.id;
-          });
+          .expect(201);
+        
+        expect(response.body.success).toBe(true);
+        expect(response.body.data.id).toBeDefined();
+        expect(response.body.data.name).toBe(testCategory.name);
+        categoryId = response.body.data.id;
       });
 
       it('should fail without token', () => {
@@ -119,7 +115,7 @@ describe('Categories (e2e)', () => {
           .post('/api/admin/categories')
           .set('Authorization', `Bearer ${adminToken}`)
           .send({
-            name: '', // 空名称
+            name: 'a'.repeat(101), // 超过最大长度
             description: 'description'
           })
           .expect(400);
@@ -135,15 +131,16 @@ describe('Categories (e2e)', () => {
     });
 
     describe('/api/admin/categories (GET)', () => {
-      it('should get categories list for admin', () => {
-        return request(app.getHttpServer())
-          .get('/api/admin/categories')
+      it('should get categories list for admin', async () => {
+        const response = await request(app.getHttpServer())
+          .get('/api/admin/categories?page=1&limit=10')
           .set('Authorization', `Bearer ${adminToken}`)
-          .expect(200)
-          .expect((res) => {
-            expect(res.body.success).toBe(true);
-            expect(Array.isArray(res.body.data)).toBe(true);
-          });
+          .expect(200);
+        
+        expect(response.body.success).toBe(true);
+        expect(response.body.data).toBeDefined();
+        expect(Array.isArray(response.body.data.data)).toBe(true);
+        expect(typeof response.body.data.total).toBe('number');
       });
 
       it('should fail without token', () => {
@@ -155,6 +152,9 @@ describe('Categories (e2e)', () => {
 
     describe('/api/admin/categories/:id (GET)', () => {
       it('should get category by id', () => {
+        if (!categoryId) {
+          throw new Error('categoryId is not defined. Make sure the create test runs first.');
+        }
         return request(app.getHttpServer())
           .get(`/api/admin/categories/${categoryId}`)
           .set('Authorization', `Bearer ${adminToken}`)
@@ -175,6 +175,9 @@ describe('Categories (e2e)', () => {
 
     describe('/api/admin/categories/:id (PATCH)', () => {
       it('should update category', () => {
+        if (!categoryId) {
+          throw new Error('categoryId is not defined. Make sure the create test runs first.');
+        }
         const updateData = {
           name: 'Updated Test Category',
           description: 'Updated description'
@@ -191,8 +194,9 @@ describe('Categories (e2e)', () => {
       });
 
       it('should fail without token', () => {
+        const testId = categoryId || 'test-id';
         return request(app.getHttpServer())
-          .patch(`/api/admin/categories/${categoryId}`)
+          .patch(`/api/admin/categories/${testId}`)
           .send({ name: 'New Name' })
           .expect(401);
       });
@@ -208,6 +212,9 @@ describe('Categories (e2e)', () => {
 
     describe('/api/admin/categories/:id (DELETE)', () => {
       it('should delete category', () => {
+        if (!categoryId) {
+          throw new Error('categoryId is not defined. Make sure the create test runs first.');
+        }
         return request(app.getHttpServer())
           .delete(`/api/admin/categories/${categoryId}`)
           .set('Authorization', `Bearer ${adminToken}`)
